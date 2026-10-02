@@ -1,0 +1,29 @@
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: ccp
+      MYSQL_USER: ccp
+      MYSQL_PASSWORD: ccp_password
+      MYSQL_ROOT_PASSWORD: root_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot_password"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: mysql+pymysql://ccp:ccp_password@db:3306/ccp
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  mysql_data:
